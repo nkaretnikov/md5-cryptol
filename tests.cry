@@ -1,0 +1,50 @@
+module tests where
+
+import md5
+
+test
+  : { m, l}
+    ( fin m
+    , fin l
+    , 512 * l - 64 >= 8 * m + 1
+    , 512 * l - 64 <= 8 * m + 512
+    , 512 * l >= 64
+    )
+  => [m][8] -> [128] -> Bit
+test in out =
+  if res != out
+  then trace "MD5 FAIL" (in,res,out) False
+  else trace "MD5 PASS" (in,res,out) True
+  where res = md5`{l=l} (join`{parts=m, each=8} in)
+
+inEmpty  = ""
+outEmpty = 0xd41d8cd98f00b204e9800998ecf8427e
+
+inA  = "a"
+outA = 0x0cc175b9c0f1b6a831c399e269772661
+
+inAbc  = "abc"
+outAbc = 0x900150983cd24fb0d6963f7d28e17f72
+
+inMessageDigest  = "message digest"
+outMessageDigest = 0xf96b697d7cb7938d525a2f31aaf161d0
+
+inLower  = "abcdefghijklmnopqrstuvwxyz"
+outLower = 0xc3fcd3d76192e4007dfb496cca67e13b
+
+inAlphaNum  =
+  ("ABCDEFGHIJKLMNOPQRSTUVWXYZ" #
+   "abcdefghijklmnopqrstuvwxyz" #
+   "0123456789")
+outAlphaNum = 0xd174ab98d277d9f5a5611c2c9f419d9f
+
+inDigits  =
+  ("12345678901234567890" #
+   "12345678901234567890" #
+   "12345678901234567890" #
+   "12345678901234567890")
+outDigits = 0x57edf4a22be3c955ac49da2e2107b67a
+
+// Test that padding is always performed (56 * 8 == 448).
+inPadding  = join (repeat`{n=56} "a")
+outPadding = 0x3b0c8ac703f828b04c6c197006d17218
